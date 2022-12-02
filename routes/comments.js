@@ -1,21 +1,33 @@
 const express = require("express")
 const Comments = require("../schemas/comment")
+const Posts = require("../schemas/post")
 const router = express.Router()
 
 
 // 댓글 생성☆
-router.post("/", async (req, res) => {
-        const { username, password, content } = req.body    
+router.post("/:postId", async (req, res) => {
+        const { postId } = req.params
+        const { username, password, content } = req.body
+        const idChecked = await Posts.findOne({ _id : postId})
+        const existsId = idChecked._id.toString()
+               
         try {
-            await Posts.create({ username, password, content })
-            return res.status(200).json({
-            Success : true,
-            Message : "댓글을 생성하였습니다."
-        }) 
+            if (!existsId){
+                    return res.status(400).json({
+                    Success : false,
+                    Message : "해당 게시글이 존재하지 않습니다."
+                })
+            } else {
+                await Comments.create({ username, password, content })
+                return res.status(200).json({
+                    Success : true,
+                    Message : "댓글을 생성하였습니다."
+                }) 
+            }            
         } catch (error) {
-            return res.status(400).json({
+            return res.status(500).json({
                 Success : false,
-                Message : "데이터 형식이 올바르지 않습니다."
+                Message : "500 Server Error."
             })
         }        
 })
